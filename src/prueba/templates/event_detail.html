@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.title }} - Sistema de Gestión de Eventos{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('events_by_category', category=event.category) }}">{{ event.category }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ event.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Event Details -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <!-- Header -->
+                    <div class="mb-4">
+                        <h1 class="h2 mb-2">{{ event.title }}</h1>
+                        <span class="badge bg-secondary">{{ event.category }}</span>
+                        {% if event.featured %}
+                        <span class="badge bg-warning text-dark ms-2">Destacado</span>
+                        {% endif %}
+                        <div class="mt-2">
+                            <strong>Asistentes:</strong> {{ event.attendees|length }}/{{ event.max_attendees }}
+                        </div>
+                    </div>
+
+                    <!-- Event Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <strong>Fecha:</strong><br>
+                            <span class="text-muted">{{ event.date }}</span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Hora:</strong><br>
+                            <span class="text-muted">{{ event.time }}</span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Ubicación:</strong><br>
+                            <span class="text-muted">{{ event.location }}</span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Categoría:</strong><br>
+                            <span class="text-muted">{{ event.category }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <h4>Descripción</h4>
+                        <p>{{ event.description }}</p>
+                    </div>
+
+                    <!-- Registration Status -->
+                    <div class="alert alert-info">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                {% if event.attendees|length >= event.max_attendees %}
+                                    <strong>Evento completo</strong> - No se aceptan más registros
+                                {% else %}
+                                    <strong>Plazas disponibles</strong> - {{ event.max_attendees - event.attendees|length }} lugares restantes
+                                {% endif %}
+                            </div>
+                            {% if event.attendees|length < event.max_attendees %}
+                            <a href="{{ url_for('register_event', slug=event.slug) }}" class="btn btn-success">
+                                Registrarse
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Attendees List -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Asistentes Registrados</h5>
+                </div>
+                <div class="card-body">
+                    {% if event.attendees %}
+                    <div class="list-group list-group-flush">
+                        {% for attendee in event.attendees %}
+                        <div class="list-group-item">
+                            <div>
+                                <strong>{{ attendee.name }}</strong><br>
+                                <small class="text-muted">{{ attendee.email }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <p class="text-muted">Aún no hay asistentes registrados</p>
+                        <p class="text-muted">¡Sé el primero en registrarte!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Acciones Rápidas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                            Volver al Inicio
+                        </a>
+                        <a href="{{ url_for('events_by_category', category=event.category) }}" class="btn btn-outline-secondary">
+                            Ver más eventos de {{ event.category }}
+                        </a>
+                        <a href="{{ url_for('create_event') }}" class="btn btn-outline-success">
+                            Crear Nuevo Evento
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - Sistema de Gestión de Eventos{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<section class="py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h1 class="mb-3">Sistema de Gestión de Eventos</h1>
+                <p class="lead mb-4">Encuentra y regístrate para eventos en tu área</p>
+                <a href="{{ url_for('create_event') }}" class="btn btn-primary btn-lg">
+                    Crear Evento
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Events Section -->
+<section class="py-4">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="text-center mb-4">Eventos Próximos</h2>
+            </div>
+        </div>
+
+        {% if events %}
+        <div class="row">
+            {% for event in events %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card h-100">
+                    {% if event.featured %}
+                    <div class="card-header bg-warning text-dark">
+                        <strong>Destacado</strong>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <span class="badge bg-secondary">{{ event.category }}</span>
+                            <small class="text-muted float-end">
+                                {{ event.attendees|length }}/{{ event.max_attendees }}
+                            </small>
+                        </div>
+                        
+                        <h5 class="card-title">{{ event.title }}</h5>
+                        <p class="card-text">{{ event.description[:100] }}{% if event.description|length > 100 %}...{% endif %}</p>
+                        
+                        <div class="mb-3">
+                            <p class="mb-1"><strong>Fecha:</strong> {{ event.date }}</p>
+                            <p class="mb-1"><strong>Hora:</strong> {{ event.time }}</p>
+                            <p class="mb-0"><strong>Lugar:</strong> {{ event.location }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('event_detail', slug=event.slug) }}" class="btn btn-primary">
+                                Ver Detalles
+                            </a>
+                            {% if event.attendees|length < event.max_attendees %}
+                            <a href="{{ url_for('register_event', slug=event.slug) }}" class="btn btn-success">
+                                Registrarse
+                            </a>
+                            {% else %}
+                            <button class="btn btn-secondary" disabled>
+                                Completo
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <h3 class="text-muted">No hay eventos próximos</h3>
+            <p class="text-muted">¡Sé el primero en crear un evento!</p>
+            <a href="{{ url_for('create_event') }}" class="btn btn-primary">
+                Crear Evento
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="bg-light py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h3 class="text-center mb-4">Explorar por Categoría</h3>
+            </div>
+        </div>
+        <div class="row">
+            {% for category in categories %}
+            <div class="col-lg-2 col-md-4 col-6 mb-3">
+                <a href="{{ url_for('events_by_category', category=category) }}" 
+                   class="text-decoration-none">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">{{ category }}</h6>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Registrarse - {{ event.title }} - Sistema de Gestión de Eventos{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <h1 class="h2 mb-3">Registrarse al Evento</h1>
+                <p class="text-muted">Completa el formulario para confirmar tu asistencia</p>
+            </div>
+
+            <div class="row">
+                <!-- Event Summary -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Detalles del Evento</h5>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-title">{{ event.title }}</h6>
+                            <p class="card-text text-muted small">{{ event.description[:100] }}...</p>
+                            
+                            <div class="mb-3">
+                                <div class="mb-2">
+                                    <strong>Fecha:</strong> {{ event.date }}
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Hora:</strong> {{ event.time }}
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Lugar:</strong> {{ event.location }}
+                                </div>
+                                <div>
+                                    <strong>Asistentes:</strong> {{ event.attendees|length }}/{{ event.max_attendees }}
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info small">
+                                {% if event.attendees|length >= event.max_attendees %}
+                                    <strong>Evento completo</strong>
+                                {% else %}
+                                    <strong>{{ event.max_attendees - event.attendees|length }} plazas disponibles</strong>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Registration Form -->
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-body">
+                            {% if event.attendees|length >= event.max_attendees %}
+                                <!-- Event Full -->
+                                <div class="text-center py-5">
+                                    <h4 class="text-danger mb-3">Evento Completo</h4>
+                                    <p class="text-muted mb-4">
+                                        Lo sentimos, este evento ya ha alcanzado su capacidad máxima de asistentes.
+                                    </p>
+                                    <a href="{{ url_for('event_detail', slug=event.slug) }}" class="btn btn-primary">
+                                        Volver al Evento
+                                    </a>
+                                </div>
+                            {% else %}
+                                <!-- Registration Form -->
+                                <form method="POST" class="needs-validation" novalidate>
+                                    <div class="mb-4">
+                                        <h4 class="mb-3">Información Personal</h4>
+                                        
+                                        <div class="mb-3">
+                                            <label for="name" class="form-label">Nombre Completo *</label>
+                                            <input type="text" class="form-control" 
+                                                   id="name" name="name" required
+                                                   placeholder="Tu nombre completo">
+                                            <div class="invalid-feedback">
+                                                Por favor ingresa tu nombre completo.
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="email" class="form-label">Correo Electrónico *</label>
+                                            <input type="email" class="form-control" 
+                                                   id="email" name="email" required
+                                                   placeholder="tu@email.com">
+                                            <div class="invalid-feedback">
+                                                Por favor ingresa un correo electrónico válido.
+                                            </div>
+                                            <div class="form-text">
+                                                Te enviaremos confirmación y actualizaciones del evento a este correo.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Terms and Conditions -->
+                                    <div class="mb-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   id="terms" required>
+                                            <label class="form-check-label" for="terms">
+                                                Acepto los <a href="#" class="text-decoration-none">términos y condiciones</a> 
+                                                y la <a href="#" class="text-decoration-none">política de privacidad</a> *
+                                            </label>
+                                            <div class="invalid-feedback">
+                                                Debes aceptar los términos y condiciones para continuar.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Submit Buttons -->
+                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                        <a href="{{ url_for('event_detail', slug=event.slug) }}" 
+                                           class="btn btn-outline-secondary me-md-2">
+                                            Cancelar
+                                        </a>
+                                        <button type="submit" class="btn btn-success">Confirmar Registro</button>
+                                    </div>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Additional Information -->
+                    <div class="card mt-4 bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">Información Importante</h5>
+                            <ul class="list-unstyled mb-0">
+                                <li>✓ Recibirás confirmación por correo electrónico</li>
+                                <li>✓ Puedes cancelar tu registro hasta 24 horas antes del evento</li>
+                                <li>✓ Llega 15 minutos antes del inicio del evento</li>
+                                <li>✓ Trae identificación para el registro en el evento</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+</script>
+{% endblock %}

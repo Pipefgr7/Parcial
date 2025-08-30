@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Eventos de {{ category }} - Sistema de Gestión de Eventos{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Inicio</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ category }}</li>
+                </ol>
+            </nav>
+            
+            <div class="text-center">
+                <h1 class="h2 mb-3">Eventos de {{ category }}</h1>
+                <p class="text-muted mb-4">Descubre todos los eventos disponibles en esta categoría</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Stats -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="h3 mb-1">{{ events|length }}</div>
+                            <small>Total de Eventos</small>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="h3 mb-1">
+                                {% set upcoming_count = events|selectattr('date', '>=', today)|list|length %}
+                                {{ upcoming_count }}
+                            </div>
+                            <small>Eventos Próximos</small>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="h3 mb-1">
+                                {% set featured_count = events|selectattr('featured', 'equalto', true)|list|length %}
+                                {{ featured_count }}
+                            </div>
+                            <small>Eventos Destacados</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Events List -->
+    {% if events %}
+    <div class="row">
+        {% for event in events %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                {% if event.featured %}
+                <div class="card-header bg-warning text-dark">
+                    <strong>Destacado</strong>
+                </div>
+                {% endif %}
+                
+                <div class="card-body">
+                    <div class="mb-2">
+                        <span class="badge bg-secondary">{{ event.category }}</span>
+                        <small class="text-muted float-end">
+                            {{ event.attendees|length }}/{{ event.max_attendees }}
+                        </small>
+                    </div>
+                    
+                    <h5 class="card-title">{{ event.title }}</h5>
+                    <p class="card-text">{{ event.description[:100] }}{% if event.description|length > 100 %}...{% endif %}</p>
+                    
+                    <div class="mb-3">
+                        <p class="mb-1"><strong>Fecha:</strong> {{ event.date }}</p>
+                        <p class="mb-1"><strong>Hora:</strong> {{ event.time }}</p>
+                        <p class="mb-0"><strong>Lugar:</strong> {{ event.location }}</p>
+                    </div>
+                </div>
+                
+                <div class="card-footer">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('event_detail', slug=event.slug) }}" class="btn btn-primary">
+                            Ver Detalles
+                        </a>
+                        {% if event.attendees|length < event.max_attendees %}
+                        <a href="{{ url_for('register_event', slug=event.slug) }}" class="btn btn-success">
+                            Registrarse
+                        </a>
+                        {% else %}
+                        <button class="btn btn-secondary" disabled>
+                            Completo
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <h3 class="text-muted">No hay eventos en esta categoría</h3>
+        <p class="text-muted">¡Sé el primero en crear un evento de {{ category }}!</p>
+        <a href="{{ url_for('create_event') }}" class="btn btn-primary">
+            Crear Evento
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Other Categories -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <h3 class="text-center mb-4">Explorar Otras Categorías</h3>
+        </div>
+    </div>
+    <div class="row">
+        {% for cat in categories %}
+        {% if cat != category %}
+        <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <a href="{{ url_for('events_by_category', category=cat) }}" 
+               class="text-decoration-none">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ cat }}</h6>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- Back to All Events -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                Ver Todos los Eventos
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
