@@ -88,10 +88,42 @@
                     {% if event.attendees %}
                     <div class="list-group list-group-flush">
                         {% for attendee in event.attendees %}
-                        <div class="list-group-item">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
                                 <strong>{{ attendee.name }}</strong><br>
                                 <small class="text-muted">{{ attendee.email }}</small>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#unregisterModal{{ loop.index }}"
+                                    title="Cancelar registro">
+                                ✕
+                            </button>
+                        </div>
+                        
+                        <!-- Modal para cancelar registro -->
+                        <div class="modal fade" id="unregisterModal{{ loop.index }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Cancelar Registro</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>¿Estás seguro de que quieres cancelar el registro de <strong>{{ attendee.name }}</strong>?</p>
+                                        <form method="POST" action="{{ url_for('unregister_event', slug=event.slug) }}">
+                                            <input type="hidden" name="email" value="{{ attendee.email }}">
+                                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                    Cancelar
+                                                </button>
+                                                <button type="submit" class="btn btn-danger">
+                                                    Confirmar Cancelación
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         {% endfor %}

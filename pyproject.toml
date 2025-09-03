@@ -4,6 +4,8 @@ version = "0.1.0"
 description = "Add your description here"
 dependencies = [
     "flask>=3.1.2",
+    "flask-wtf>=1.2.1",
+    "wtforms>=3.1.1",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
@@ -14,7 +16,9 @@ build-backend = "hatchling.build"
 
 [tool.rye]
 managed = true
-dev-dependencies = []
+dev-dependencies = [
+    "requests>=2.31.0",
+]
 
 [tool.hatch.metadata]
 allow-direct-references = true

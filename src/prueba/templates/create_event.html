@@ -16,51 +16,58 @@
             <div class="card">
                 <div class="card-body">
                     <form method="POST" class="needs-validation" novalidate>
+                        {{ form.hidden_tag() }}
+                        
                         <!-- Basic Information -->
                         <div class="mb-4">
                             <h4 class="mb-3">Información Básica</h4>
                             
                             <div class="mb-3">
-                                <label for="title" class="form-label">Título del Evento *</label>
-                                <input type="text" class="form-control" 
-                                       id="title" name="title" required
-                                       placeholder="Ej: Conferencia de Python 2025">
-                                <div class="invalid-feedback">
-                                    Por favor ingresa un título para el evento.
-                                </div>
+                                {{ form.title.label(class="form-label") }}
+                                {{ form.title(class="form-control") }}
+                                {% if form.title.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.title.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
 
                             <div class="mb-3">
-                                <label for="description" class="form-label">Descripción *</label>
-                                <textarea class="form-control" id="description" name="description" 
-                                          rows="4" required
-                                          placeholder="Describe tu evento..."></textarea>
-                                <div class="invalid-feedback">
-                                    Por favor ingresa una descripción del evento.
-                                </div>
+                                {{ form.description.label(class="form-label") }}
+                                {{ form.description(class="form-control") }}
+                                {% if form.description.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.description.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
 
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="category" class="form-label">Categoría *</label>
-                                    <select class="form-select" id="category" name="category" required>
-                                        <option value="">Selecciona una categoría</option>
-                                        {% for category in categories %}
-                                        <option value="{{ category }}">{{ category }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    <div class="invalid-feedback">
-                                        Por favor selecciona una categoría.
-                                    </div>
+                                    {{ form.category.label(class="form-label") }}
+                                    {{ form.category(class="form-select") }}
+                                    {% if form.category.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.category.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label for="max_attendees" class="form-label">Máximo de Asistentes *</label>
-                                    <input type="number" class="form-control" id="max_attendees" 
-                                           name="max_attendees" min="1" required
-                                           placeholder="Ej: 50">
-                                    <div class="invalid-feedback">
-                                        Por favor ingresa un número válido de asistentes.
-                                    </div>
+                                    {{ form.max_attendees.label(class="form-label") }}
+                                    {{ form.max_attendees(class="form-control") }}
+                                    {% if form.max_attendees.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.max_attendees.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -71,20 +78,26 @@
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="date" class="form-label">Fecha *</label>
-                                    <input type="date" class="form-control" id="date" 
-                                           name="date" required>
-                                    <div class="invalid-feedback">
-                                        Por favor selecciona una fecha válida.
-                                    </div>
+                                    {{ form.date.label(class="form-label") }}
+                                    {{ form.date(class="form-control") }}
+                                    {% if form.date.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.date.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label for="time" class="form-label">Hora *</label>
-                                    <input type="time" class="form-control" id="time" 
-                                           name="time" required>
-                                    <div class="invalid-feedback">
-                                        Por favor selecciona una hora válida.
-                                    </div>
+                                    {{ form.time.label(class="form-label") }}
+                                    {{ form.time(class="form-control") }}
+                                    {% if form.time.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.time.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -94,13 +107,15 @@
                             <h4 class="mb-3">Ubicación</h4>
                             
                             <div class="mb-3">
-                                <label for="location" class="form-label">Lugar del Evento *</label>
-                                <input type="text" class="form-control" id="location" 
-                                       name="location" required
-                                       placeholder="Ej: Auditorio Principal">
-                                <div class="invalid-feedback">
-                                    Por favor ingresa la ubicación del evento.
-                                </div>
+                                {{ form.location.label(class="form-label") }}
+                                {{ form.location(class="form-control") }}
+                                {% if form.location.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.location.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -109,14 +124,18 @@
                             <h4 class="mb-3">Opciones Adicionales</h4>
                             
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" 
-                                       id="featured" name="featured">
-                                <label class="form-check-label" for="featured">
-                                    Marcar como evento destacado
-                                </label>
+                                {{ form.featured(class="form-check-input") }}
+                                {{ form.featured.label(class="form-check-label") }}
                                 <div class="form-text">
                                     Los eventos destacados aparecen con mayor prominencia.
                                 </div>
+                                {% if form.featured.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.featured.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -125,7 +144,7 @@
                             <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-md-2">
                                 Cancelar
                             </a>
-                            <button type="submit" class="btn btn-primary">Crear Evento</button>
+                            {{ form.submit(class="btn btn-primary") }}
                         </div>
                     </form>
                 </div>

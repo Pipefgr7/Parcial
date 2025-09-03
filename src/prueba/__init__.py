@@ -1,11 +1,16 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask_wtf.csrf import CSRFProtect
 from datetime import datetime, timedelta
 import re
 from typing import List, Dict, Any
+from .forms import CreateEventForm, RegisterEventForm, SearchEventForm
 
 def create_app():
     app = Flask(__name__)
     app.secret_key = 'tu_clave_secreta_aqui'
+    
+    # Configurar CSRF protection
+    csrf = CSRFProtect(app)
     
     # Datos de ejemplo (en una aplicación real, esto estaría en una base de datos)
     events = [
@@ -79,6 +84,9 @@ def create_app():
     @app.route('/')
     def index():
         """Página principal con lista de eventos próximos"""
+        search_form = SearchEventForm()
+        search_form.category.choices = [('', 'Todas las categorías')] + [(cat, cat) for cat in categories]
+        
         # Filtrar eventos futuros y ordenar por fecha
         today = datetime.now().date()
         upcoming_events = [
@@ -89,7 +97,8 @@ def create_app():
         
         return render_template('index.html', 
                              events=upcoming_events, 
-                             categories=categories)
+                             categories=categories,
+                             search_form=search_form)
     
     @app.route('/event/<slug>/')
     def event_detail(slug):
@@ -104,59 +113,40 @@ def create_app():
     @app.route('/admin/event/', methods=['GET', 'POST'])
     def create_event():
         """Formulario para crear un nuevo evento"""
-        if request.method == 'POST':
-            title = request.form.get('title', '').strip()
-            description = request.form.get('description', '').strip()
-            date = request.form.get('date', '').strip()
-            time = request.form.get('time', '').strip()
-            location = request.form.get('location', '').strip()
-            category = request.form.get('category', '').strip()
-            max_attendees = request.form.get('max_attendees', '').strip()
-            featured = request.form.get('featured') == 'on'
-            
-            # Validaciones
-            if not all([title, description, date, time, location, category, max_attendees]):
-                flash('Todos los campos son obligatorios', 'error')
-                return render_template('create_event.html', categories=categories)
-            
-            try:
-                max_attendees = int(max_attendees)
-                if max_attendees <= 0:
-                    raise ValueError()
-            except ValueError:
-                flash('El número máximo de asistentes debe ser un número positivo', 'error')
-                return render_template('create_event.html', categories=categories)
-            
+        form = CreateEventForm()
+        form.category.choices = [(cat, cat) for cat in categories]
+        
+        if form.validate_on_submit():
             # Validar fecha
             try:
-                event_date = datetime.strptime(date, '%Y-%m-%d')
+                event_date = datetime.strptime(form.date.data, '%Y-%m-%d')
                 if event_date.date() < datetime.now().date():
                     flash('La fecha del evento no puede ser en el pasado', 'error')
-                    return render_template('create_event.html', categories=categories)
+                    return render_template('create_event.html', form=form, categories=categories)
             except ValueError:
                 flash('Formato de fecha inválido', 'error')
-                return render_template('create_event.html', categories=categories)
+                return render_template('create_event.html', form=form, categories=categories)
             
             # Crear nuevo evento
             new_event = {
                 'id': max([e['id'] for e in events]) + 1,
-                'title': title,
-                'slug': create_slug(title),
-                'description': description,
-                'date': date,
-                'time': time,
-                'location': location,
-                'category': category,
-                'max_attendees': max_attendees,
+                'title': form.title.data,
+                'slug': create_slug(form.title.data),
+                'description': form.description.data,
+                'date': form.date.data,
+                'time': form.time.data,
+                'location': form.location.data,
+                'category': form.category.data,
+                'max_attendees': form.max_attendees.data,
                 'attendees': [],
-                'featured': featured
+                'featured': form.featured.data
             }
             
             events.append(new_event)
             flash('Evento creado exitosamente', 'success')
             return redirect(url_for('event_detail', slug=new_event['slug']))
         
-        return render_template('create_event.html', categories=categories)
+        return render_template('create_event.html', form=form, categories=categories)
     
     @app.route('/event/<slug>/register/', methods=['GET', 'POST'])
     def register_event(slug):
@@ -166,40 +156,106 @@ def create_app():
             flash('Evento no encontrado', 'error')
             return redirect(url_for('index'))
         
-        if request.method == 'POST':
-            name = request.form.get('name', '').strip()
-            email = request.form.get('email', '').strip()
-            
-            # Validaciones
-            if not name or not email:
-                flash('Nombre y email son obligatorios', 'error')
-                return render_template('register_event.html', event=event)
-            
-            if not is_valid_email(email):
-                flash('Formato de email inválido', 'error')
-                return render_template('register_event.html', event=event)
-            
+        form = RegisterEventForm()
+        
+        if form.validate_on_submit():
             # Verificar si ya está registrado
             for attendee in event['attendees']:
-                if attendee['email'] == email:
+                if attendee['email'] == form.email.data:
                     flash('Ya estás registrado para este evento', 'error')
-                    return render_template('register_event.html', event=event)
+                    return render_template('register_event.html', event=event, form=form)
             
             # Verificar capacidad
             if len(event['attendees']) >= event['max_attendees']:
                 flash('El evento ya está completo', 'error')
-                return render_template('register_event.html', event=event)
+                return render_template('register_event.html', event=event, form=form)
             
             # Registrar asistente
             event['attendees'].append({
-                'name': name,
-                'email': email
+                'name': form.name.data,
+                'email': form.email.data
             })
             
             flash('Te has registrado exitosamente para el evento', 'success')
             return redirect(url_for('event_detail', slug=slug))
         
-        return render_template('register_event.html', event=event)
+        return render_template('register_event.html', event=event, form=form)
+    
+    @app.route('/search/', methods=['GET', 'POST'])
+    def search_events():
+        """Buscar eventos"""
+        search_form = SearchEventForm()
+        search_form.category.choices = [('', 'Todas las categorías')] + [(cat, cat) for cat in categories]
+        
+        if search_form.validate_on_submit():
+            query = search_form.query.data.lower() if search_form.query.data else ''
+            category_filter = search_form.category.data
+            
+            # Filtrar eventos
+            filtered_events = []
+            for event in events:
+                # Filtrar por categoría
+                if category_filter and event['category'] != category_filter:
+                    continue
+                
+                # Filtrar por búsqueda de texto
+                if query:
+                    searchable_text = f"{event['title']} {event['description']} {event['location']}".lower()
+                    if query not in searchable_text:
+                        continue
+                
+                filtered_events.append(event)
+            
+            return render_template('search_results.html', 
+                                 events=filtered_events,
+                                 search_form=search_form,
+                                 query=query,
+                                 category_filter=category_filter,
+                                 categories=categories)
+        
+        return render_template('search_results.html', 
+                             events=[],
+                             search_form=search_form,
+                             query='',
+                             category_filter='',
+                             categories=categories)
+    
+    @app.route('/event/<slug>/unregister/', methods=['POST'])
+    def unregister_event(slug):
+        """Cancelar registro a un evento"""
+        event = get_event_by_slug(slug)
+        if not event:
+            flash('Evento no encontrado', 'error')
+            return redirect(url_for('index'))
+        
+        email = request.form.get('email', '').strip()
+        if not email:
+            flash('Email es requerido para cancelar el registro', 'error')
+            return redirect(url_for('event_detail', slug=slug))
+        
+        # Buscar y remover el asistente
+        for i, attendee in enumerate(event['attendees']):
+            if attendee['email'] == email:
+                removed_attendee = event['attendees'].pop(i)
+                flash(f'Se ha cancelado el registro de {removed_attendee["name"]}', 'success')
+                return redirect(url_for('event_detail', slug=slug))
+        
+        flash('No se encontró un registro con ese email', 'error')
+        return redirect(url_for('event_detail', slug=slug))
+    
+    @app.route('/events/past/')
+    def past_events():
+        """Ver eventos pasados"""
+        today = datetime.now().date()
+        past_events = [
+            event for event in events 
+            if datetime.strptime(event['date'], '%Y-%m-%d').date() < today
+        ]
+        past_events.sort(key=lambda x: x['date'], reverse=True)
+        
+        return render_template('past_events.html', 
+                             events=past_events, 
+                             categories=categories)
     
     @app.route('/events/category/<category>/')
     def events_by_category(category):
@@ -213,6 +269,57 @@ def create_app():
                              events=filtered_events, 
                              category=category,
                              categories=categories)
+    
+    @app.route('/admin/')
+    def admin_dashboard():
+        """Panel de administración"""
+        # Estadísticas
+        total_events = len(events)
+        upcoming_events = len([e for e in events if datetime.strptime(e['date'], '%Y-%m-%d').date() >= datetime.now().date()])
+        total_attendees = sum(len(e['attendees']) for e in events)
+        featured_events = len([e for e in events if e['featured']])
+        
+        # Eventos por categoría
+        events_by_category = {}
+        for event in events:
+            category = event['category']
+            if category not in events_by_category:
+                events_by_category[category] = 0
+            events_by_category[category] += 1
+        
+        return render_template('admin_dashboard.html',
+                             total_events=total_events,
+                             upcoming_events=upcoming_events,
+                             total_attendees=total_attendees,
+                             featured_events=featured_events,
+                             events_by_category=events_by_category,
+                             events=events,
+                             categories=categories)
+    
+    @app.route('/admin/event/<slug>/delete/', methods=['POST'])
+    def delete_event(slug):
+        """Eliminar un evento"""
+        event = get_event_by_slug(slug)
+        if not event:
+            flash('Evento no encontrado', 'error')
+            return redirect(url_for('admin_dashboard'))
+        
+        events.remove(event)
+        flash(f'Evento "{event["title"]}" eliminado exitosamente', 'success')
+        return redirect(url_for('admin_dashboard'))
+    
+    @app.route('/admin/event/<slug>/toggle-featured/', methods=['POST'])
+    def toggle_featured(slug):
+        """Alternar estado destacado de un evento"""
+        event = get_event_by_slug(slug)
+        if not event:
+            flash('Evento no encontrado', 'error')
+            return redirect(url_for('admin_dashboard'))
+        
+        event['featured'] = not event['featured']
+        status = 'destacado' if event['featured'] else 'no destacado'
+        flash(f'Evento "{event["title"]}" marcado como {status}', 'success')
+        return redirect(url_for('admin_dashboard'))
     
     @app.route('/api/events/')
     def api_events():

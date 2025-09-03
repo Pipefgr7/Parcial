@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Resultados de Búsqueda - Sistema de Gestión de Eventos{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Inicio</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Búsqueda</li>
+                </ol>
+            </nav>
+            
+            <div class="text-center">
+                <h1 class="h2 mb-3">Buscar Eventos</h1>
+                <p class="text-muted mb-4">Encuentra eventos que te interesen</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Form -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('search_events') }}">
+                        {{ search_form.hidden_tag() }}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ search_form.query.label(class="form-label") }}
+                                {{ search_form.query(class="form-control") }}
+                                {% if search_form.query.errors %}
+                                    <div class="text-danger">
+                                        {% for error in search_form.query.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ search_form.category.label(class="form-label") }}
+                                {{ search_form.category(class="form-select") }}
+                                {% if search_form.category.errors %}
+                                    <div class="text-danger">
+                                        {% for error in search_form.category.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-2 mb-3 d-flex align-items-end">
+                                {{ search_form.submit(class="btn btn-primary w-100") }}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Results -->
+    {% if query or category_filter %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h5 class="alert-heading">Resultados de búsqueda</h5>
+                {% if query %}
+                    <p class="mb-1"><strong>Búsqueda:</strong> "{{ query }}"</p>
+                {% endif %}
+                {% if category_filter %}
+                    <p class="mb-1"><strong>Categoría:</strong> {{ category_filter }}</p>
+                {% endif %}
+                <p class="mb-0"><strong>Encontrados:</strong> {{ events|length }} evento(s)</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Events List -->
+    {% if events %}
+    <div class="row">
+        {% for event in events %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                {% if event.featured %}
+                <div class="card-header bg-warning text-dark">
+                    <strong>Destacado</strong>
+                </div>
+                {% endif %}
+                
+                <div class="card-body">
+                    <div class="mb-2">
+                        <span class="badge bg-secondary">{{ event.category }}</span>
+                        <small class="text-muted float-end">
+                            {{ event.attendees|length }}/{{ event.max_attendees }}
+                        </small>
+                    </div>
+                    
+                    <h5 class="card-title">{{ event.title }}</h5>
+                    <p class="card-text">{{ event.description[:100] }}{% if event.description|length > 100 %}...{% endif %}</p>
+                    
+                    <div class="mb-3">
+                        <p class="mb-1"><strong>Fecha:</strong> {{ event.date }}</p>
+                        <p class="mb-1"><strong>Hora:</strong> {{ event.time }}</p>
+                        <p class="mb-0"><strong>Lugar:</strong> {{ event.location }}</p>
+                    </div>
+                </div>
+                
+                <div class="card-footer">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('event_detail', slug=event.slug) }}" class="btn btn-primary">
+                            Ver Detalles
+                        </a>
+                        {% if event.attendees|length < event.max_attendees %}
+                        <a href="{{ url_for('register_event', slug=event.slug) }}" class="btn btn-success">
+                            Registrarse
+                        </a>
+                        {% else %}
+                        <button class="btn btn-secondary" disabled>
+                            Completo
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+        {% if query or category_filter %}
+        <div class="text-center py-5">
+            <h3 class="text-muted">No se encontraron eventos</h3>
+            <p class="text-muted">Intenta con otros términos de búsqueda o categorías</p>
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                Ver Todos los Eventos
+            </a>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <h3 class="text-muted">Busca eventos</h3>
+            <p class="text-muted">Usa el formulario de arriba para encontrar eventos que te interesen</p>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary me-2">
+                Ver Todos los Eventos
+            </a>
+            <a href="{{ url_for('create_event') }}" class="btn btn-outline-success">
+                Crear Evento
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

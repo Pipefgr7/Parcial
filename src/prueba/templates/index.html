@@ -11,7 +11,7 @@
                 <h1 class="mb-3">Sistema de Gestión de Eventos</h1>
                 <p class="lead mb-4">Encuentra y regístrate para eventos en tu área</p>
                 <a href="{{ url_for('create_event') }}" class="btn btn-primary btn-lg">
-                    Crear Evento
+                    <i class="bi bi-plus-circle"></i> Crear Evento
                 </a>
             </div>
         </div>
@@ -50,24 +50,24 @@
                         <p class="card-text">{{ event.description[:100] }}{% if event.description|length > 100 %}...{% endif %}</p>
                         
                         <div class="mb-3">
-                            <p class="mb-1"><strong>Fecha:</strong> {{ event.date }}</p>
-                            <p class="mb-1"><strong>Hora:</strong> {{ event.time }}</p>
-                            <p class="mb-0"><strong>Lugar:</strong> {{ event.location }}</p>
+                            <p class="mb-1"><i class="bi bi-calendar"></i> <strong>Fecha:</strong> {{ event.date }}</p>
+                            <p class="mb-1"><i class="bi bi-clock"></i> <strong>Hora:</strong> {{ event.time }}</p>
+                            <p class="mb-0"><i class="bi bi-geo-alt"></i> <strong>Lugar:</strong> {{ event.location }}</p>
                         </div>
                     </div>
                     
                     <div class="card-footer">
                         <div class="d-grid gap-2">
                             <a href="{{ url_for('event_detail', slug=event.slug) }}" class="btn btn-primary">
-                                Ver Detalles
+                                <i class="bi bi-eye"></i> Ver Detalles
                             </a>
                             {% if event.attendees|length < event.max_attendees %}
                             <a href="{{ url_for('register_event', slug=event.slug) }}" class="btn btn-success">
-                                Registrarse
+                                <i class="bi bi-person-plus"></i> Registrarse
                             </a>
                             {% else %}
                             <button class="btn btn-secondary" disabled>
-                                Completo
+                                <i class="bi bi-x-circle"></i> Completo
                             </button>
                             {% endif %}
                         </div>

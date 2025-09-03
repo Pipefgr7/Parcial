@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Eventos de {{ category }} - Sistema de Gestión de Eventos{% endblock %}
+{% block title %}Eventos Pasados - Sistema de Gestión de Eventos{% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -10,32 +10,36 @@
             <nav aria-label="breadcrumb" class="mb-3">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Inicio</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">{{ category }}</li>
+                    <li class="breadcrumb-item active" aria-current="page">Eventos Pasados</li>
                 </ol>
             </nav>
             
             <div class="text-center">
-                <h1 class="h2 mb-3">Eventos de {{ category }}</h1>
-                <p class="text-muted mb-4">Descubre todos los eventos disponibles en esta categoría</p>
+                <h1 class="h2 mb-3">Eventos Pasados</h1>
+                <p class="text-muted mb-4">Revisa los eventos que ya han ocurrido</p>
             </div>
         </div>
     </div>
 
-    <!-- Category Stats -->
+    <!-- Stats -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card bg-primary text-white">
+            <div class="card bg-secondary text-white">
                 <div class="card-body text-center">
                     <div class="row">
                         <div class="col-md-4">
                             <div class="h3 mb-1">{{ events|length }}</div>
-                            <small>Total de Eventos</small>
+                            <small>Total de Eventos Pasados</small>
                         </div>
                         <div class="col-md-4">
                             <div class="h3 mb-1">
-                                {{ events|length }}
+                                {% set total_attendees = 0 %}
+                                {% for event in events %}
+                                    {% set total_attendees = total_attendees + event.attendees|length %}
+                                {% endfor %}
+                                {{ total_attendees }}
                             </div>
-                            <small>Eventos en esta Categoría</small>
+                            <small>Total de Asistentes</small>
                         </div>
                         <div class="col-md-4">
                             <div class="h3 mb-1">
@@ -55,7 +59,7 @@
     <div class="row">
         {% for event in events %}
         <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card h-100">
+            <div class="card h-100 border-secondary">
                 {% if event.featured %}
                 <div class="card-header bg-warning text-dark">
                     <strong>Destacado</strong>
@@ -65,6 +69,7 @@
                 <div class="card-body">
                     <div class="mb-2">
                         <span class="badge bg-secondary">{{ event.category }}</span>
+                        <span class="badge bg-danger ms-1">Pasado</span>
                         <small class="text-muted float-end">
                             {{ event.attendees|length }}/{{ event.max_attendees }}
                         </small>
@@ -82,18 +87,12 @@
                 
                 <div class="card-footer">
                     <div class="d-grid gap-2">
-                        <a href="{{ url_for('event_detail', slug=event.slug) }}" class="btn btn-primary">
+                        <a href="{{ url_for('event_detail', slug=event.slug) }}" class="btn btn-outline-primary">
                             Ver Detalles
                         </a>
-                        {% if event.attendees|length < event.max_attendees %}
-                        <a href="{{ url_for('register_event', slug=event.slug) }}" class="btn btn-success">
-                            Registrarse
-                        </a>
-                        {% else %}
                         <button class="btn btn-secondary" disabled>
-                            Completo
+                            Evento Finalizado
                         </button>
-                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -102,42 +101,22 @@
     </div>
     {% else %}
     <div class="text-center py-5">
-        <h3 class="text-muted">No hay eventos en esta categoría</h3>
-        <p class="text-muted">¡Sé el primero en crear un evento de {{ category }}!</p>
-        <a href="{{ url_for('create_event') }}" class="btn btn-primary">
-            Crear Evento
+        <h3 class="text-muted">No hay eventos pasados</h3>
+        <p class="text-muted">Los eventos aparecerán aquí una vez que hayan ocurrido</p>
+        <a href="{{ url_for('index') }}" class="btn btn-primary">
+            Ver Eventos Próximos
         </a>
     </div>
     {% endif %}
 
-    <!-- Other Categories -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <h3 class="text-center mb-4">Explorar Otras Categorías</h3>
-        </div>
-    </div>
-    <div class="row">
-        {% for cat in categories %}
-        {% if cat != category %}
-        <div class="col-lg-2 col-md-4 col-6 mb-3">
-            <a href="{{ url_for('events_by_category', category=cat) }}" 
-               class="text-decoration-none">
-                <div class="card text-center h-100">
-                    <div class="card-body">
-                        <h6 class="card-title">{{ cat }}</h6>
-                    </div>
-                </div>
-            </a>
-        </div>
-        {% endif %}
-        {% endfor %}
-    </div>
-
-    <!-- Back to All Events -->
+    <!-- Navigation -->
     <div class="row mt-4">
         <div class="col-12 text-center">
-            <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
-                Ver Todos los Eventos
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary me-2">
+                Ver Eventos Próximos
+            </a>
+            <a href="{{ url_for('create_event') }}" class="btn btn-outline-success">
+                Crear Evento
             </a>
         </div>
     </div>

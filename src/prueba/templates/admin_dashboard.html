@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Panel de Administración - Sistema de Gestión de Eventos{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Inicio</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Administración</li>
+                </ol>
+            </nav>
+            
+            <div class="text-center">
+                <h1 class="h2 mb-3">Panel de Administración</h1>
+                <p class="text-muted mb-4">Gestiona todos los eventos del sistema</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <div class="h2 mb-1">{{ total_events }}</div>
+                    <small>Total de Eventos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <div class="h2 mb-1">{{ upcoming_events }}</div>
+                    <small>Eventos Próximos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <div class="h2 mb-1">{{ total_attendees }}</div>
+                    <small>Total Asistentes</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body text-center">
+                    <div class="h2 mb-1">{{ featured_events }}</div>
+                    <small>Eventos Destacados</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Events by Category -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Eventos por Categoría</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for category, count in events_by_category.items() %}
+                        <div class="col-md-2 col-6 mb-2">
+                            <div class="text-center">
+                                <div class="h4 mb-1">{{ count }}</div>
+                                <small class="text-muted">{{ category }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Acciones Rápidas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2 d-md-flex">
+                        <a href="{{ url_for('create_event') }}" class="btn btn-primary">
+                            Crear Nuevo Evento
+                        </a>
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                            Ver Sitio Público
+                        </a>
+                        <a href="{{ url_for('search_events') }}" class="btn btn-outline-info">
+                            Buscar Eventos
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Events Management -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Gestión de Eventos</h5>
+                </div>
+                <div class="card-body">
+                    {% if events %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Título</th>
+                                    <th>Categoría</th>
+                                    <th>Fecha</th>
+                                    <th>Asistentes</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in events %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ event.title }}</strong>
+                                        {% if event.featured %}
+                                        <span class="badge bg-warning text-dark ms-1">Destacado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ event.category }}</span>
+                                    </td>
+                                    <td>{{ event.date }} {{ event.time }}</td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            {{ event.attendees|length }}/{{ event.max_attendees }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">Activo</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{{ url_for('event_detail', slug=event.slug) }}" 
+                                               class="btn btn-outline-primary" title="Ver detalles">
+                                                👁️
+                                            </a>
+                                            <form method="POST" action="{{ url_for('toggle_featured', slug=event.slug) }}" 
+                                                  class="d-inline">
+                                                <button type="submit" class="btn btn-outline-warning" 
+                                                        title="{% if event.featured %}Quitar destacado{% else %}Marcar destacado{% endif %}">
+                                                    {% if event.featured %}⭐{% else %}☆{% endif %}
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-outline-danger" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteModal{{ event.id }}"
+                                                    title="Eliminar evento">
+                                                🗑️
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Modal para eliminar evento -->
+                                        <div class="modal fade" id="deleteModal{{ event.id }}" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Eliminar Evento</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p>¿Estás seguro de que quieres eliminar el evento <strong>"{{ event.title }}"</strong>?</p>
+                                                        <p class="text-danger"><small>Esta acción no se puede deshacer.</small></p>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                            Cancelar
+                                                        </button>
+                                                        <form method="POST" action="{{ url_for('delete_event', slug=event.slug) }}" class="d-inline">
+                                                            <button type="submit" class="btn btn-danger">
+                                                                Eliminar
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <h4 class="text-muted">No hay eventos</h4>
+                        <p class="text-muted">Crea tu primer evento para comenzar</p>
+                        <a href="{{ url_for('create_event') }}" class="btn btn-primary">
+                            Crear Evento
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
